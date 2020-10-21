@@ -1,0 +1,10 @@
+img {
+  width: 100%;
+}
+
+.profile-picture {
+  height: 160px;
+  width: 160px;
+  overflow: hidden;
+  border-radius: 8px;
+}
