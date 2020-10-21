@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState, useRef } from "react";
+import InfiniteLoader from "react-window-infinite-loader";
 import "./styles.css";
 
 import { fetchWrapper } from "./utils/fetchWrapper";
@@ -52,20 +53,79 @@ export default () => {
         nextId.current = data[0].id;
         setNewData(data);
       }
-
-      intervalId.current = window.setInterval(handlePoll, POLL_INTERVAL);
     });
   }, [handlePoll, setNewData]);
 
+  const handleScroll = ({ scrollOffset }) => {
+    if (scrollOffset > 0) {
+      clearInterval(intervalId.current);
+      intervalId.current = null;
+    } else {
+      if (!intervalId.current) {
+        intervalId.current = setInterval(handlePoll, POLL_INTERVAL);
+      }
+    }
+  };
+
   useEffect(() => {
     // Clean up interval on unmount
-    return () => window.clearInterval(intervalId.current);
+    return () => clearInterval(intervalId.current);
   }, []);
+
+  const loadNextPage = (props) => {
+    console.log("fetch data", props);
+
+    fetchWrapper({
+      count: 15,
+      beforeId: tweets[tweets.length - 1].id
+    }).then((data) => {
+      if (data.length) {
+        console.log("data", data);
+        // setNewData(data);
+        setTweets((prevState = []) => {
+          const newData = [...prevState, ...data];
+          // Create a set of Ids as this removes all the duplicate ids
+          // Then map over the complete data set only returning the tweets you have an id for
+          return Array.from(new Set(newData.map((item) => item.id))).map(
+            (id) => {
+              return newData.find((item) => item.id === id);
+            }
+          );
+        });
+      }
+    });
+  };
+
+  const hasNextPage = true;
+
+  // If there are more items to be loaded then add an extra row to hold a loading indicator.
+  const itemCount = hasNextPage ? tweets.length + 1 : tweets.length;
+
+  // Only load 1 page of items at a time.
+  // Pass an empty callback to InfiniteLoader in case it asks us to load more than once.
+  const loadMoreItems = inProgress.current ? () => {} : loadNextPage;
+
+  // Every row is loaded except for our loading indicator row.
+  const isItemLoaded = (index) => !hasNextPage || index < tweets.length;
 
   return (
     <div className="App">
       <Title text="Latest tweets" />
-      <TweetWrapper list={tweets} />
+      <InfiniteLoader
+        isItemLoaded={isItemLoaded}
+        itemCount={itemCount}
+        loadMoreItems={loadMoreItems}
+        threshold={1}
+      >
+        {({ onItemsRendered, ref }) => (
+          <TweetWrapper
+            list={tweets}
+            onScroll={handleScroll}
+            onItemsRendered={onItemsRendered}
+            loaderRef={ref}
+          />
+        )}
+      </InfiniteLoader>
     </div>
   );
 };

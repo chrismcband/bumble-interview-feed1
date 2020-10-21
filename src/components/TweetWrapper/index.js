@@ -5,7 +5,12 @@ import "./styles.css";
 
 import { Tweet } from "../Tweet";
 
-export const TweetWrapper = ({ list = [] }) => (
+export const TweetWrapper = ({
+  list = [],
+  onScroll,
+  loaderRef,
+  onItemsRendered
+}) => (
   <AutoSizer>
     {({ height, width }) => (
       <FixedSizeList
@@ -14,6 +19,9 @@ export const TweetWrapper = ({ list = [] }) => (
         itemSize={200}
         width={width}
         itemData={list}
+        onScroll={onScroll}
+        onItemsRendered={onItemsRendered}
+        ref={loaderRef}
       >
         {Tweet}
       </FixedSizeList>
