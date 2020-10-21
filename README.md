@@ -1,5 +1,11 @@
 # Tech test
 
+## New requirements
+
+- When not at the top stop polling, resume when back at the top
+- When at the bottom fetch past tweets
+
+
 ## Decisions made
 
 Here is a brief overview of some of the things I thought about when doing this test.
